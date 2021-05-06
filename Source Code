@@ -1,0 +1,260 @@
+#include"LPC2148.H"
+#include<stdio.h>
+unsigned int pass = 4;
+void lcd_initialize();
+void lcdcmd(int);
+void delay();
+void lcd_Data(char);
+void DisplayRow(int,char*);
+int e;
+int z;
+int rec(void);
+char arrr[13];
+int rec(void);
+#define c1 (IO0PIN && 0X01)
+#define c2 (IO0PIN && 0X02)
+#define c3 (IO0PIN && 0X04)
+#define r1 (IO0PIN && 0X08)
+#define r2 (IO0PIN && 0X10)
+#define r3 (IO0PIN && 0X20)
+int sum;
+void delay2()
+{
+	int j;
+	for(j=0;j<2000000;j++);
+}
+void delay1()
+{
+	int i;
+	for(i=0;i<20000;i++);
+}
+int main()
+{
+	int c0,r0;
+	char r,t,a,b,s[]="GPS System",arr[]="waiting",arr1[]="waiting2",arr2[]="waiting3",arr3[]="waiting4",q,inv[]="invalid data",l[]="yes";
+	unsigned char f,g,d[15],p[15];
+	int k=0;
+	IO0DIR|=0xff;
+	VPBDIV=0x02;
+	PINSEL0=0x00050005;
+	U0LCR=0x83;
+	U0DLL=0xc3;
+	U0LCR=0x03;
+	U1LCR=0x83;
+	U1DLM=0x01;
+	U1DLL=0x87;
+	U1LCR=0x03;
+	while(1)
+	    {
+			IO0SET|=0x07;
+			IO0CLR|=0x18;
+			while(c1 && c2 && c3)
+			   { 
+			    if(!c1)
+				c0=1;
+				else if(!c2)
+				c0=2;
+				else if(!c3)
+				c0=3;
+				}
+			IO0CLR|=0XC0;
+			IO0CLR|=0X07;
+			IO0SET|=0X18;
+			while(r1 && r2 && r3)
+				{ 
+				  if(!r1)
+				  r0=0;
+				  else if(!r2)
+			      r0=3;
+			    }
+		    sum=c0+r0;
+		    IO0SET|=sum<<5;
+	
+		}
+	lcd_initialize();
+	lcdcmd(0x80);
+	lcd_Data(sum);
+	if (sum==pass)
+		{
+			DisplayRow(2,"Correct");
+			delay();
+			DisplayRow(1,"~Get Your Card~");
+			delay();
+   	    	DisplayRow(2,"~Swipe Card~");
+			delay();
+	    	while(1)
+	    	{
+				for(z=0;z<13;z++)
+		  		{
+		    		arrr[z]=rec();
+		  		}
+				for(z=1;z<11;z++)
+	      		{
+	        		lcd_Data(arrr[z]);
+	      		}
+			if(arrr[4]=='4')
+			{
+				lcdcmd(0xC0);
+				DisplayRow(1,"valid");
+			 	delay();
+				DisplayRow(1,"Car Unlocked");
+			}
+		
+		    else
+		    {
+				cmd(0xC0);
+				DisplayRow(1,"invalid");
+				delay();
+				lcd_initialize();
+				while (1)
+            	{
+            	while ((U1LSR&0X01)==0);
+            	q=U1RBR;
+            	if (q=='R')
+            	{
+                 	while ((U1LSR&0X01)==0);
+                 	q=U1RBR;
+                 if (q=='M')
+                 {
+                     while ((U1LSR&0X01)==0);
+                     q=U1RBR;
+                  if (q=='C')
+                  {
+                  while ((q!='A') && (q!='V'))
+                  {
+                      while ((U1LSR&0X01)==0);
+                      q=U1RBR;
+                  }  
+                  if (q=='A')
+                    {
+                    	a=0;b=0;
+                    	while ((d[a]!='N') && (d[a]!='S'))
+                    	{		   
+                    		a++;
+                    		while ((U1LSR&0X01)==0);
+                    		g=U1RBR;
+                    		d[a]=g;
+                    	}
+
+						while ((p[b]!='E') && (p[b]!='W'))
+                        {	  
+                            b++;
+                    		while ((U1LSR&0X01)==0);
+                    		f=U1RBR;
+                    		p[b]=f;
+                    	} 
+
+ 			    		lcdcmd(0x01);
+ 			    		lcdcmd(0X80);
+                		for(r=1;r<a+1;r++)
+                		{
+ 							lcd_Data(d[r]); 
+						}
+
+ 						lcdcmd(0Xc0);
+
+						for(t=1;t<b+1;t++)
+						{ 
+ 						lcd_Data(p[t]); 
+						}
+					} 
+				else if (q=='V')
+				{
+				  lcdcmd(0x01);
+				  lcdcmd(0X80); 
+				  DisplayRow(1,"inv");
+				}
+}
+
+}
+
+}
+
+}
+}
+}
+}
+
+	else
+	DisplayRow(2,"Wrong ");
+			  
+
+}
+
+int rec(void)
+{
+	while((U0LSR &0x01)==0);
+	return(U0RBR);
+}
+		
+
+
+void lcdcmd(int d)
+{
+	int c=d;
+	IO1CLR|=(1<<24);
+	IO1CLR|=(1<<23);
+	IO1SET|=(1<<22);
+	delay();
+	IO0SET|=(c<<6);
+	IO1CLR|=(1<<22);
+	IO0CLR=(0x00003C00);
+	delay();
+	IO1SET|=(1<<22);
+	delay();
+	IO0SET|=(d<<10);
+	IO1CLR|=(1<<22);
+	IO0CLR=(0x00003C00);
+	delay();
+	IO0CLR=0xFF<<10;
+}
+void delay()	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+{
+	int delay1;
+	for(delay1=0;delay1<20000;delay1++);
+}
+
+void lcd_initialize()
+{
+	IO0DIR|=(0X00003C00);
+	IO1DIR|=(0x01C00000);
+	lcdcmd(0x28);
+	lcdcmd(0x01);
+	lcdcmd(0x06);
+	lcdcmd(0x0e);
+	lcdcmd(0x80);
+}
+void lcd_Data(char d)
+{
+	int c=d;
+	IO1SET|=(1<<24);
+	IO1CLR|=(1<<23);
+	IO1SET|=(1<<22);
+	delay ();
+	IO0SET|=(c<<6);
+	IO1CLR|=(1<<22);
+	IO0CLR|=(0X00003C00);
+	delay();
+	IO1SET|=(1<<22);
+	delay();
+	IO0SET|=(d<<10);
+	IO1CLR|=(1<<22);
+	IO0CLR =(0x00003C00);
+	delay();
+	IO0CLR=0XFF<<10;
+}
+void DisplayRow(int row,char*str)
+{
+	int k;
+	if(row==1)
+	lcdcmd(0x80);
+	else
+	lcdcmd(0xC0);
+	while(str[k]!='\0')
+	{
+		lcd_Data(str[k]);
+		k++;
+	}
+}
+
+
